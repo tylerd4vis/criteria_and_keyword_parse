@@ -193,7 +193,6 @@
   </header>
 
   <main>
-    <!-- LEFT PANEL -->
     <section class="panel">
       <h2>1 · Paste Reviewer Feedback</h2>
       <textarea id="inputText" placeholder="Paste feedback here..."></textarea>
@@ -204,11 +203,9 @@
       </div>
     </section>
 
-    <!-- RIGHT PANEL -->
     <section class="panel">
       <h2>2 · Results</h2>
 
-      <!-- FILTER -->
       <div class="search-input">
         <input id="filterInput" type="text" placeholder="Filter C# or keyword... (i.e., C5, Criteria 5, self-contained, atomic)" />
       </div>
@@ -251,27 +248,30 @@
   }
 
   function findCriteriaContexts(text) {
-    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    const cleaned = text.replace(/\n+/g, " ");
+    const sentences = cleaned
+      .split(/(?<=[.!?])\s+/)
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+
     const criteriaMap = new Map();
     const cPattern = /C(\d+)/g;
     const criteriaPattern = /Criteria\s*(\d+)/gi;
 
-    for (const rawLine of lines) {
-      const line = rawLine.trim();
+    for (const sentence of sentences) {
       let match;
-
-      while ((match = cPattern.exec(line)) !== null) {
+      while ((match = cPattern.exec(sentence)) !== null) {
         const label = `C${match[1]}`;
         if (!criteriaMap.has(label)) criteriaMap.set(label, new Set());
-        criteriaMap.get(label).add(line);
+        criteriaMap.get(label).add(sentence);
       }
-
-      while ((match = criteriaPattern.exec(line)) !== null) {
+      while ((match = criteriaPattern.exec(sentence)) !== null) {
         const label = `C${match[1]}`;
         if (!criteriaMap.has(label)) criteriaMap.set(label, new Set());
-        criteriaMap.get(label).add(line);
+        criteriaMap.get(label).add(sentence);
       }
     }
+
     return criteriaMap;
   }
 
@@ -362,16 +362,15 @@
   }
 
   function loadExample() {
-    inputEl.value = `This was a good image for the LLM to analyze and a good prompt however there were several inaccurate criteria, which cited specific numbers for phase transitions but did not specify what alloy was being investigated.
+    inputEl.value = `This was a good image for the LLM to analyze and a good prompt however there were several inaccurate criteria…
 C1 – Only true for the 0.4 % Carbon, incorrect/incomplete
 C4 – Does not require image
-The response states the final room temperature constituents (Proeutectoid ferrite and pearlite)
 C5 – Only true for the 0.4%, incorrect/incomplete
 C7 – self contained/incomplete – does not specify which alloy
 C10/C13 repetitive/overlapping – same idea as C3
-C12 – this temperature is not true for either of the alloys being discussed and C% is not mentioned.
-C15 – Only true for the 5% Carbon, incorrect/incomplete
-C17 – incorrect/incomplete. this is not the case for carbon % below 2.
+C12 – this temperature is not true…
+C15 – Only true for the 5% Carbon
+C17 – incorrect/incomplete.
 `;
     analyze();
   }
@@ -379,7 +378,6 @@ C17 – incorrect/incomplete. this is not the case for carbon % below 2.
   analyzeBtn.addEventListener("click", analyze);
   filterInput.addEventListener("input", applyFilter);
   loadExampleBtn.addEventListener("click", loadExample);
-
 </script>
 
 </body>
