@@ -19,6 +19,9 @@
       --radius-lg: 16px;
       --radius-xl: 22px;
       --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.75);
+
+      --kw-bg: rgba(255, 235, 140, 0.35);
+      --kw-text: #facc15;
     }
 
     .light {
@@ -31,7 +34,17 @@
       --text-main: #0f172a;
       --text-muted: #475569;
       --text-soft: #64748b;
-      --shadow-soft: 0 4px 12px rgba(0,0,0,0.08);
+
+      --kw-bg: rgba(255, 240, 150, 0.45);
+      --kw-text: #ca8a04;
+    }
+
+    .kw {
+      background: var(--kw-bg);
+      padding: 0 2px;
+      border-radius: 3px;
+      color: var(--kw-text);
+      font-weight: 600;
     }
 
     * {
@@ -177,12 +190,7 @@
       font-size: 0.82rem;
     }
 
-    #resultsContainer {
-      max-height: 350px;
-      overflow-y: auto;
-    }
-
-    #keywordResults {
+    #resultsContainer, #keywordResults {
       max-height: 350px;
       overflow-y: auto;
     }
@@ -279,6 +287,11 @@
     return text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   }
 
+  function highlightKeyword(line, keyword) {
+    const pattern = new RegExp(`(${keyword})`, "ig");
+    return line.replace(pattern, `<span class="kw">$1</span>`);
+  }
+
   function findCriteriaContexts(text) {
     const lines = text.split(/\r?\n/).filter(l => l.trim());
     const criteriaMap = new Map();
@@ -344,17 +357,24 @@
       return;
     }
 
-    for (const [keyword, lines] of keywordMap.entries()) {
+    for (const [keyword, rawLines] of keywordMap.entries()) {
       const card = document.createElement("div");
       card.className = "criterion-card";
       card.dataset.search = keyword.toLowerCase();
 
+      const lines = Array.from(rawLines).map(line => {
+        let highlighted = line;
+        highlighted = highlightKeyword(highlighted, keyword);
+        return `<li>${highlighted}</li>`;
+      }).join("");
+
       card.innerHTML = `
         <div class="criterion-label">${keyword}</div>
         <ul class="context-list">
-          ${Array.from(lines).map(l => `<li>${escapeHtml(l)}</li>`).join("")}
+          ${lines}
         </ul>
       `;
+
       keywordResults.appendChild(card);
     }
   }
