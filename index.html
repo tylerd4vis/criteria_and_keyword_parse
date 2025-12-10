@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Criteria Issue Finder + Keyword Scanner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-elevated: #020617;
+      --card: #020617;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.15);
+      --border-subtle: #1e293b;
+      --text-main: #e5e7eb;
+      --text-muted: #94a3b8;
+      --text-soft: #64748b;
+      --radius-lg: 16px;
+      --radius-xl: 22px;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.75);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at top, #1f2937 0, #020617 45%, #000 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    .shell {
+      max-width: 1250px;
+      width: 100%;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    header h1 span.badge {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), #020617 35%);
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      padding: 18px;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 260px;
+      resize: vertical;
+      border-radius: 14px;
+      border: 1px solid var(--border-subtle);
+      padding: 12px;
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-main);
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+
+    button.primary {
+      border-radius: 999px;
+      border: none;
+      background: #0284c7;
+      padding: 8px 16px;
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button.secondary {
+      border-radius: 999px;
+      border: 1px solid var(--text-muted);
+      background: transparent;
+      padding: 6px 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .criterion-card {
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(15, 23, 42, 0.9);
+      padding: 12px;
+      margin-bottom: 8px;
+    }
+
+    .criterion-label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .context-list {
+      margin: 6px 0 0;
+      padding-left: 16px;
+      font-size: 0.82rem;
+    }
+
+    mark {
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 0 2px;
+      border-radius: 3px;
+    }
+
+    #resultsContainer {
+      max-height: 350px;
+      overflow-y: auto;
+    }
+
+    #keywordResults {
+      max-height: 350px;
+      overflow-y: auto;
+    }
+
+    .search-input input {
+      width: 100%;
+      border-radius: 999px;
+      padding: 6px 12px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-main);
+      font-size: 0.8rem;
+    }
+
+    .empty-state {
+      padding: 10px;
+      border: 1px dashed var(--text-soft);
+      border-radius: 12px;
+      font-size: 0.85rem;
+      color: var(--text-soft);
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+<div class="shell">
+
+  <header>
+    <h1>
+      Criteria Issue Finder
+      <span class="badge">C# Parser + Keyword Scanner</span>
+    </h1>
+    <p class="subtitle">Paste feedback and instantly see every C# issue and flagged keyword.</p>
+  </header>
+
+  <main>
+    <!-- LEFT PANEL -->
+    <section class="panel">
+      <h2>1 · Paste Reviewer Feedback</h2>
+      <textarea id="inputText" placeholder="Paste feedback here..."></textarea>
+
+      <div style="display:flex; gap:10px;">
+        <button class="primary" id="analyzeButton">Analyze</button>
+        <button class="secondary" id="loadExampleBtn">Load Example Text</button>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL -->
+    <section class="panel">
+      <h2>2 · Results</h2>
+
+      <!-- FILTER -->
+      <div class="search-input">
+        <input id="filterInput" type="text" placeholder="Filter C# or keyword... (e.g., C5, image, incorrect)" />
+      </div>
+
+      <h3 style="margin-bottom:4px;">Criteria Mentions</h3>
+      <div id="resultsContainer">
+        <div class="empty-state">No analysis yet.</div>
+      </div>
+
+      <h3 style="margin-top:16px; margin-bottom:4px;">Keywords Found</h3>
+      <div id="keywordResults">
+        <div class="empty-state">No keywords detected yet.</div>
+      </div>
+
+    </section>
+  </main>
+
+</div>
+
+<script>
+  const inputEl = document.getElementById("inputText");
+  const analyzeBtn = document.getElementById("analyzeButton");
+  const resultsContainer = document.getElementById("resultsContainer");
+  const keywordResults = document.getElementById("keywordResults");
+  const filterInput = document.getElementById("filterInput");
+  const loadExampleBtn = document.getElementById("loadExampleBtn");
+
+  const KEYWORDS = [
+    "atomic","atomicity",
+    "self-contain","self contain","self contained","self-contained",
+    "counterproductive","timeless","weight","independent","dependency",
+    "hallucination","contradictory","prompt","unclear","unnecessary",
+    "collective","exhaustion","subjective","subjectivity","duplicate",
+    "mirror","incorrect","redundant","image",
+    "overlap","overlapping","overlaps","inaccurate","images"
+  ];
+
+  function escapeHtml(text) {
+    return text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  function findCriteriaContexts(text) {
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    const criteriaMap = new Map();
+    const cPattern = /C(\d+)/g;
+    const criteriaPattern = /Criteria\s*(\d+)/gi;
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      let match;
+
+      while ((match = cPattern.exec(line)) !== null) {
+        const label = `C${match[1]}`;
+        if (!criteriaMap.has(label)) criteriaMap.set(label, new Set());
+        criteriaMap.get(label).add(line);
+      }
+
+      while ((match = criteriaPattern.exec(line)) !== null) {
+        const label = `C${match[1]}`;
+        if (!criteriaMap.has(label)) criteriaMap.set(label, new Set());
+        criteriaMap.get(label).add(line);
+      }
+    }
+    return criteriaMap;
+  }
+
+  function findKeywordHits(text) {
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    const results = new Map();
+
+    for (const rawLine of lines) {
+      const lower = rawLine.toLowerCase();
+      for (const keyword of KEYWORDS) {
+        if (lower.includes(keyword.toLowerCase())) {
+          if (!results.has(keyword)) results.set(keyword, new Set());
+          results.get(keyword).add(rawLine.trim());
+        }
+      }
+    }
+    return results;
+  }
+
+  function renderCriteria(criteriaMap) {
+    resultsContainer.innerHTML = "";
+
+    if (criteriaMap.size === 0) {
+      resultsContainer.innerHTML = `<div class="empty-state">No C# criteria found.</div>`;
+      return;
+    }
+
+    for (const [criterion, lines] of criteriaMap.entries()) {
+      const card = document.createElement("div");
+      card.className = "criterion-card";
+      card.dataset.search = criterion.toLowerCase();
+
+      card.innerHTML = `
+        <div class="criterion-label">${criterion}</div>
+        <ul class="context-list">
+          ${Array.from(lines).map(l => `<li>${l}</li>`).join("")}
+        </ul>
+      `;
+      resultsContainer.appendChild(card);
+    }
+  }
+
+  function renderKeywords(keywordMap) {
+    keywordResults.innerHTML = "";
+
+    if (keywordMap.size === 0) {
+      keywordResults.innerHTML = `<div class="empty-state">No keywords detected.</div>`;
+      return;
+    }
+
+    for (const [keyword, lines] of keywordMap.entries()) {
+      const card = document.createElement("div");
+      card.className = "criterion-card";
+      card.dataset.search = keyword.toLowerCase();
+
+      card.innerHTML = `
+        <div class="criterion-label">${keyword}</div>
+        <ul class="context-list">
+          ${Array.from(lines).map(l => `<li>${escapeHtml(l)}</li>`).join("")}
+        </ul>
+      `;
+      keywordResults.appendChild(card);
+    }
+  }
+
+  function applyFilter() {
+    const q = filterInput.value.toLowerCase().trim();
+    const allCards = document.querySelectorAll("[data-search]");
+
+    allCards.forEach(card => {
+      const key = card.dataset.search;
+      const full = card.textContent.toLowerCase();
+      card.style.display = (!q || key.includes(q) || full.includes(q)) ? "block" : "none";
+    });
+  }
+
+  function analyze() {
+    const raw = inputEl.value.trim();
+    if (!raw) return;
+
+    const critMap = findCriteriaContexts(raw);
+    renderCriteria(critMap);
+
+    const keywordMap = findKeywordHits(raw);
+    renderKeywords(keywordMap);
+
+    applyFilter();
+  }
+
+  function loadExample() {
+    inputEl.value = `This was a good image for the LLM to analyze and a good prompt however there were several inaccurate criteria, which cited specific numbers for phase transitions but did not specify what alloy was being investigated.
+C1 – Only true for the 0.4 % Carbon, incorrect/incomplete
+C4 – Does not require image
+The response states the final room temperature constituents (Proeutectoid ferrite and pearlite)
+C5 – Only true for the 0.4%, incorrect/incomplete
+C7 – self contained/incomplete – does not specify which alloy
+C10/C13 repetitive/overlapping – same idea as C3
+C12 – this temperature is not true for either of the alloys being discussed and C% is not mentioned.
+C15 – Only true for the 5% Carbon, incorrect/incomplete
+C17 – incorrect/incomplete. this is not the case for carbon % below 2.
+`;
+    analyze();
+  }
+
+  analyzeBtn.addEventListener("click", analyze);
+  filterInput.addEventListener("input", applyFilter);
+  loadExampleBtn.addEventListener("click", loadExample);
+
+</script>
+
+</body>
+</html>
