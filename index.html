@@ -6,233 +6,100 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <style>
 :root {
-  --bg: #0f172a;
-  --bg-elevated: #020617;
-  --card: #020617;
-  --accent: #38bdf8;
-  --accent-soft: rgba(56, 189, 248, 0.15);
-  --border-subtle: #1e293b;
-  --text-main: #e5e7eb;
-  --text-muted: #94a3b8;
-  --text-soft: #64748b;
-  --radius-lg: 16px;
-  --radius-xl: 22px;
-  --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.75);
-  --kw-bg: rgba(255, 235, 140, 0.35);
-  --kw-text: #facc15;
-  --crit-bg: rgba(255, 205, 0, 0.35);
-  --crit-text: #b59f00;
+  --bg: #0f172a; --bg-elevated: #020617; --card: #020617;
+  --accent: #38bdf8; --accent-soft: rgba(56, 189, 248, 0.15);
+  --border-subtle: #1e293b; --text-main: #e5e7eb; --text-muted: #94a3b8; --text-soft: #64748b;
+  --radius-lg: 16px; --radius-xl: 22px; --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.75);
+  --crit-bg: rgba(255, 205, 0, 0.35); --crit-text: #b59f00;
 }
-.light {
-  --bg: #f1f5f9;
-  --bg-elevated: #ffffff;
-  --card: #ffffff;
-  --accent: #0284c7;
-  --accent-soft: rgba(2,132,199,0.15);
-  --border-subtle: #cbd5e1;
-  --text-main: #0f172a;
-  --text-muted: #475569;
-  --text-soft: #64748b;
-  --kw-bg: rgba(255, 240, 150, 0.45);
-  --kw-text: #ca8a04;
-  --crit-bg: rgba(255, 225, 100, 0.35);
-  --crit-text: #b59f00;
-}
-.kw { background: var(--kw-bg); padding: 0 2px; border-radius: 3px; color: var(--kw-text); font-weight: 600; }
-.crit-kw { background: var(--crit-bg); color: var(--crit-text); font-weight: 700; padding: 0 3px; border-radius: 3px; }
-* { box-sizing: border-box; }
-body { margin:0; padding:0; font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text-main); min-height: 100vh; display:flex; align-items:stretch; justify-content:center; transition: background 0.25s, color 0.25s; }
-.shell { max-width: 1250px; width: 100%; padding: 24px; display:flex; flex-direction:column; gap:20px; }
-header { display:flex; justify-content:space-between; align-items:center; }
-header h1 { margin:0; font-size:1.9rem; display:flex; align-items:center; gap:8px; }
-header h1 span.badge { font-size:0.75rem; padding:3px 8px; border-radius:999px; background: var(--accent-soft); color: var(--accent); }
-.subtitle { font-size:0.9rem; color: var(--text-muted); }
-#modeToggle { border:none; border-radius:999px; padding:8px 16px; background: var(--accent); color:white; cursor:pointer; font-size:0.8rem; font-weight:600; }
-main { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:20px; align-items:flex-start; }
-@media (max-width:900px){ main { grid-template-columns:1fr; } }
-.panel { background: var(--card); border-radius: var(--radius-xl); border:1px solid var(--border-subtle); padding:18px; box-shadow: var(--shadow-soft); display:flex; flex-direction:column; gap:14px; transition: background 0.25s, border 0.25s, color 0.25s; }
-textarea { width:100%; min-height:260px; resize:vertical; border-radius:14px; border:1px solid var(--border-subtle); padding:12px; background: var(--bg-elevated); color: var(--text-main); font-family: monospace; font-size:0.9rem; transition: background 0.25s, color 0.25s; }
-button.primary { border-radius:999px; border:none; background:#0284c7; padding:8px 16px; color:white; cursor:pointer; font-weight:600; }
-button.secondary { border-radius:999px; border:1px solid var(--text-muted); background:transparent; padding:6px 12px; color: var(--text-muted); cursor:pointer; }
-.criterion-card { border-radius: var(--radius-lg); border:1px solid var(--border-subtle); background: var(--bg-elevated); padding:12px; margin-bottom:8px; transition: background 0.25s, border 0.25s, color 0.25s; }
-.criterion-label { font-size:0.9rem; font-weight:700; color: var(--accent); }
-.context-list { margin:6px 0 0; padding-left:16px; font-size:0.82rem; }
-#resultsContainer, #keywordResults { max-height:350px; overflow-y:auto; }
-.search-input input { width:100%; border-radius:999px; padding:6px 12px; border:1px solid var(--border-subtle); background: var(--bg-elevated); color: var(--text-main); font-size:0.8rem; transition: background 0.25s, color 0.25s; }
-.empty-state { padding:10px; border:1px dashed var(--text-soft); border-radius:12px; font-size:0.85rem; color: var(--text-soft); text-align:center; }
-.copy-btn { margin-left:8px; font-size:0.75rem; padding:2px 6px; border-radius:8px; border:none; background: var(--accent); color:white; cursor:pointer; transition: background 0.2s; }
+.light { --bg:#f1f5f9; --bg-elevated:#fff; --card:#fff; --accent:#0284c7; --accent-soft: rgba(2,132,199,0.15); --text-main:#0f172a; --text-muted:#475569; --text-soft:#64748b; --crit-bg: rgba(255,225,100,0.35); --crit-text:#b59f00; }
+.crit-kw { background: var(--crit-bg); color: var(--crit-text); font-weight:700; padding:0 3px; border-radius:3px; }
+.copy-btn { margin-left:4px; font-size:0.75rem; padding:2px 6px; border-radius:8px; border:none; background: var(--accent); color:white; cursor:pointer; transition: background 0.2s; }
 .copy-btn:hover { filter: brightness(0.85); }
+body { margin:0; padding:0; font-family:system-ui, sans-serif; background: var(--bg); color: var(--text-main); min-height:100vh; display:flex; justify-content:center; }
+.shell { max-width:1250px; width:100%; padding:24px; display:flex; flex-direction:column; gap:20px; }
+.panel { background: var(--card); border-radius:22px; border:1px solid var(--border-subtle); padding:18px; box-shadow:0 18px 45px rgba(15,23,42,0.75); display:flex; flex-direction:column; gap:14px; }
+.criterion-card { border-radius:16px; border:1px solid var(--border-subtle); background: var(--bg-elevated); padding:12px; margin-bottom:8px; }
+.criterion-label { font-weight:700; color: var(--accent); }
+.context-list { margin:6px 0 0; padding-left:16px; font-size:0.82rem; }
 </style>
 </head>
 <body>
 <div class="shell">
-<header>
-  <div>
-    <h1>Criteria Issue Finder <span class="badge">Crtieria Parser & Keyword Scanner</span></h1>
-    <p class="subtitle">Paste feedback and see criteria issues and flagged keywords.</p>
-  </div>
-  <button id="modeToggle">Light Mode</button>
-</header>
-<main>
-<section class="panel">
-  <h2>1 · Paste Reviewer Feedback</h2>
-  <textarea id="inputText" placeholder="Paste feedback here..."></textarea>
-  <div style="display:flex; gap:10px;">
-    <button class="primary" id="analyzeButton">Analyze</button>
-    <button class="secondary" id="loadExampleBtn">Load Example Text</button>
-  </div>
-</section>
-<section class="panel">
-  <h2>2 · Results</h2>
-  <div class="search-input">
-    <input id="filterInput" type="text" placeholder="Filter C# or keyword... (i.e., C5, Criteria 5, self-contained, atomic)" />
-  </div>
-  <h3 style="margin-bottom:4px;">Criteria</h3>
-  <div id="resultsContainer"><div class="empty-state">No evaluation of criteria found.</div></div>
-  <h3 style="margin-top:16px; margin-bottom:4px;">Keywords</h3>
-  <div id="keywordResults"><div class="empty-state">No keywords detected yet.</div></div>
-</section>
-</main>
+  <section class="panel">
+    <h2>Paste Feedback</h2>
+    <textarea id="inputText" placeholder="Paste feedback here..." rows="8"></textarea>
+    <button id="analyzeButton">Analyze</button>
+  </section>
+  <section class="panel">
+    <h2>Results</h2>
+    <div id="resultsContainer"></div>
+  </section>
 </div>
 <script>
 const inputEl = document.getElementById("inputText");
 const analyzeBtn = document.getElementById("analyzeButton");
 const resultsContainer = document.getElementById("resultsContainer");
-const keywordResults = document.getElementById("keywordResults");
-const filterInput = document.getElementById("filterInput");
-const loadExampleBtn = document.getElementById("loadExampleBtn");
-const modeToggle = document.getElementById("modeToggle");
-
-const KEYWORDS = [
-  "atomic","atomicity","self-contain","self contain","self contained","self-contained",
-  "counterproductive","timeless","weight","independent","dependency",
-  "hallucination","contradictory","prompt","unclear","unnecessary","collective",
-  "exhaustion","subjective","subjectivity","duplicate","mirror","incorrect",
-  "redundant","image","overlap","overlapping","overlaps","inaccurate","images","negative"
-];
-
 const cPattern = /\b(?:C|Criteria|Criterion)[\s-]*(\d+)\b/gi;
 
 function escapeHtml(text){ return text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
-function highlightSpecificCriteria(line, criterionNumber){
-  // Highlight only this criterion reference
-  const pattern = new RegExp(`\\b(?:C|Criteria|Criterion)[\\s-]*${criterionNumber}\\b`, 'gi');
-  return line.replace(pattern, '<span class="crit-kw">$&</span>');
-}
-
-function findCriteriaContexts(text){
+function renderCriteria(text){
+  resultsContainer.innerHTML = "";
   const lines = text.split(/\r?\n/).filter(l=>l.trim());
-  const criteriaMap = new Map();
+  const critMap = new Map();
 
-  for(const line of lines){
+  lines.forEach(line=>{
     let match;
     while((match=cPattern.exec(line))!==null){
-      const label = `C${match[1]}`;
-      if(!criteriaMap.has(label)) criteriaMap.set(label, new Set());
-      criteriaMap.get(label).add(line);
+      const critNumber = match[1];
+      const label = `C${critNumber}`;
+      if(!critMap.has(label)) critMap.set(label, []);
+      critMap.get(label).push(line);
     }
-  }
-  return criteriaMap;
-}
+  });
 
-function findKeywordHits(text){
-  const lines = text.split(/\r?\n/).filter(l=>l.trim());
-  const results = new Map();
-  for(const rawLine of lines){
-    const lower = rawLine.toLowerCase();
-    for(const keyword of KEYWORDS){
-      if(lower.includes(keyword.toLowerCase())){
-        if(!results.has(keyword)) results.set(keyword,new Set());
-        results.get(keyword).add(rawLine.trim());
-      }
-    }
-  }
-  return results;
-}
-
-function renderCriteria(criteriaMap){
-  resultsContainer.innerHTML = "";
-  if(criteriaMap.size===0){ resultsContainer.innerHTML='<div class="empty-state">No evaluation of criteria found.</div>'; return; }
-  for(const [criterion, lines] of criteriaMap.entries()){
+  critMap.forEach((lines, criterion)=>{
     const card = document.createElement("div");
     card.className="criterion-card";
-    card.dataset.search=criterion.toLowerCase();
+    card.innerHTML = `<div class="criterion-label">${criterion}</div><ul class="context-list"></ul>`;
+    const ul = card.querySelector("ul");
 
-    const lineItems = Array.from(lines).map(line=>{
-      const highlighted = highlightSpecificCriteria(escapeHtml(line), criterion.replace('C',''));
-      return `<li>${highlighted} <button class="copy-btn" onclick="navigator.clipboard.writeText('${escapeHtml(line).replace(/'/g,"\\'")}')">Copy</button></li>`;
-    }).join('');
+    lines.forEach(line=>{
+      const li = document.createElement("li");
+      let lastIndex = 0;
+      const frag = document.createDocumentFragment();
+      const regex = new RegExp(`\\b(?:C|Criteria|Criterion)[\\s-]*${criterion.replace('C','')}\\b`, "gi");
+      let m;
+      while((m = regex.exec(line)) !== null){
+        if(m.index > lastIndex){
+          frag.appendChild(document.createTextNode(line.slice(lastIndex, m.index)));
+        }
+        const span = document.createElement("span");
+        span.className="crit-kw";
+        span.textContent = m[0];
+        frag.appendChild(span);
 
-    card.innerHTML=`<div class="criterion-label">${criterion}</div><ul class="context-list">${lineItems}</ul>`;
+        const btn = document.createElement("button");
+        btn.className="copy-btn";
+        btn.textContent="Copy";
+        btn.onclick = () => navigator.clipboard.writeText(line);
+        frag.appendChild(btn);
+
+        lastIndex = m.index + m[0].length;
+      }
+      if(lastIndex < line.length){
+        frag.appendChild(document.createTextNode(line.slice(lastIndex)));
+      }
+      li.appendChild(frag);
+      ul.appendChild(li);
+    });
+
     resultsContainer.appendChild(card);
-  }
-}
-
-function renderKeywords(keywordMap){
-  keywordResults.innerHTML="";
-  if(keywordMap.size===0){ keywordResults.innerHTML='<div class="empty-state">No keywords detected.</div>'; return; }
-
-  for(const [keyword, rawLines] of keywordMap.entries()){
-    const card=document.createElement("div");
-    card.className="criterion-card";
-    card.dataset.search=keyword.toLowerCase();
-
-    const lines=Array.from(rawLines).map(line=>{
-      let highlighted=line;
-      highlighted=highlightKeyword(highlighted, keyword);
-      return `<li>${highlighted} <button class="copy-btn" onclick="navigator.clipboard.writeText('${escapeHtml(line).replace(/'/g,"\\'")}')">Copy</button></li>`;
-    }).join('');
-
-    card.innerHTML=`<div class="criterion-label">${keyword}</div><ul class="context-list">${lines}</ul>`;
-    keywordResults.appendChild(card);
-  }
-}
-
-function highlightKeyword(line, keyword){
-  const pattern=new RegExp(`(${keyword})`,'ig');
-  return line.replace(pattern,'<span class="kw">$1</span>');
-}
-
-function applyFilter(){
-  const q=filterInput.value.toLowerCase().trim();
-  const allCards=document.querySelectorAll("[data-search]");
-  allCards.forEach(card=>{
-    const key=card.dataset.search;
-    const full=card.textContent.toLowerCase();
-    card.style.display=(!q||key.includes(q)||full.includes(q))?'block':'none';
   });
 }
 
-function analyze(){
-  const raw=inputEl.value.trim();
-  if(!raw) return;
-  const critMap=findCriteriaContexts(raw);
-  renderCriteria(critMap);
-  const keywordMap=findKeywordHits(raw);
-  renderKeywords(keywordMap);
-  applyFilter();
-}
-
-function loadExample(){
-  inputEl.value=`This was a good image for the LLM to analyze and a good prompt however there were several inaccurate criteria, which cited specific numbers for phase transitions but did not specify what alloy was being investigated.
-C1 – Only true for the 0.4 % Carbon, incorrect/incomplete
-C4 – Does not require image
-The response states the final room temperature constituents (Proeutectoid ferrite and pearlite)
-C5 – Only true for the 0.4%, incorrect/incomplete
-C7 – self contained/incomplete – does not specify which alloy
-C10/C13 repetitive/overlapping – same idea as C3
-C12 – this temperature is not true for either of the alloys being discussed and C% is not mentioned.
-C15 – Only true for the 5% Carbon, incorrect/incomplete
-C17 – incorrect/incomplete. this is not the case for carbon % below 2.
-`;
-  analyze();
-}
-
-modeToggle.addEventListener("click",()=>{document.body.classList.toggle("light"); modeToggle.textContent=document.body.classList.contains("light")?"Dark Mode":"Light Mode";});
-analyzeBtn.addEventListener("click",analyze);
-filterInput.addEventListener("input",applyFilter);
-loadExampleBtn.addEventListener("click",loadExample);
+analyzeBtn.addEventListener("click",()=>{ renderCriteria(inputEl.value); });
 </script>
 </body>
 </html>
