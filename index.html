@@ -132,7 +132,7 @@ function highlightCriteriaMentions(line){
 function findCriteriaContexts(text){
     const lines = text.split(/\r?\n/).filter(l => l.trim());
     const criteriaMap = new Map();
-    const cPattern = /C(\d+)/g;
+    const cPattern = /\b(?:C|Criteria|Criterion)[\s-]*(\d+)\b/gi;
     for(const rawLine of lines){
         const line = rawLine.trim();
         let match;
