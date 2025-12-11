@@ -20,7 +20,7 @@
   --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.75);
   --kw-bg: rgba(255, 235, 140, 0.35);
   --kw-text: #facc15;
-  --crit-bg: rgba(255, 205, 0, 0.25);
+  --crit-bg: rgba(255, 205, 0, 0.35);
   --crit-text: #b59f00;
 }
 .light {
@@ -88,13 +88,9 @@ button.secondary { border-radius:999px; border:1px solid var(--text-muted); back
     <input id="filterInput" type="text" placeholder="Filter C# or keyword... (i.e., C5, Criteria 5, self-contained, atomic)" />
   </div>
   <h3 style="margin-bottom:4px;">Criteria</h3>
-  <div id="resultsContainer">
-    <div class="empty-state">No evaluation of criteria found.</div>
-  </div>
+  <div id="resultsContainer"><div class="empty-state">No evaluation of criteria found.</div></div>
   <h3 style="margin-top:16px; margin-bottom:4px;">Keywords</h3>
-  <div id="keywordResults">
-    <div class="empty-state">No keywords detected yet.</div>
-  </div>
+  <div id="keywordResults"><div class="empty-state">No keywords detected yet.</div></div>
 </section>
 </main>
 </div>
@@ -115,135 +111,128 @@ const KEYWORDS = [
   "redundant","image","overlap","overlapping","overlaps","inaccurate","images","negative"
 ];
 
-function escapeHtml(text){
-    return text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-}
+const cPattern = /\b(?:C|Criteria|Criterion)[\s-]*(\d+)\b/gi;
 
-function highlightKeyword(line, keyword){
-    const pattern = new RegExp(`(${keyword})`, "ig");
-    return line.replace(pattern, '<span class="kw">$1</span>');
-}
+function escapeHtml(text){ return text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
-function highlightCriteriaMentions(line){
-    const pattern = /\b(C\d+|criteria|criterion)\b/ig;
-    return line.replace(pattern, '<span class="crit-kw">$1</span>');
+function highlightSpecificCriteria(line, criterionNumber){
+  // Highlight only this criterion reference
+  const pattern = new RegExp(`\\b(?:C|Criteria|Criterion)[\\s-]*${criterionNumber}\\b`, 'gi');
+  return line.replace(pattern, '<span class="crit-kw">$&</span>');
 }
 
 function findCriteriaContexts(text){
-    const lines = text.split(/\r?\n/).filter(l => l.trim());
-    const criteriaMap = new Map();
-    const cPattern = /\b(?:C|Criteria|Criterion)[\s-]*(\d+)\b/gi;
-    for(const rawLine of lines){
-        const line = rawLine.trim();
-        let match;
-        while((match = cPattern.exec(line)) !== null){
-            const label = `C${match[1]}`;
-            if(!criteriaMap.has(label)) criteriaMap.set(label, new Set());
-            criteriaMap.get(label).add(line);
-        }
+  const lines = text.split(/\r?\n/).filter(l=>l.trim());
+  const criteriaMap = new Map();
+
+  for(const line of lines){
+    let match;
+    while((match=cPattern.exec(line))!==null){
+      const label = `C${match[1]}`;
+      if(!criteriaMap.has(label)) criteriaMap.set(label, new Set());
+      criteriaMap.get(label).add(line);
     }
-    return criteriaMap;
+  }
+  return criteriaMap;
 }
 
 function findKeywordHits(text){
-    const lines = text.split(/\r?\n/).filter(l => l.trim());
-    const results = new Map();
-    for(const rawLine of lines){
-        const lower = rawLine.toLowerCase();
-        for(const keyword of KEYWORDS){
-            if(lower.includes(keyword.toLowerCase())){
-                if(!results.has(keyword)) results.set(keyword, new Set());
-                results.get(keyword).add(rawLine.trim());
-            }
-        }
+  const lines = text.split(/\r?\n/).filter(l=>l.trim());
+  const results = new Map();
+  for(const rawLine of lines){
+    const lower = rawLine.toLowerCase();
+    for(const keyword of KEYWORDS){
+      if(lower.includes(keyword.toLowerCase())){
+        if(!results.has(keyword)) results.set(keyword,new Set());
+        results.get(keyword).add(rawLine.trim());
+      }
     }
-    return results;
+  }
+  return results;
 }
 
 function renderCriteria(criteriaMap){
-    resultsContainer.innerHTML = "";
-    if(criteriaMap.size === 0){
-        resultsContainer.innerHTML = '<div class="empty-state">No evaluation of criteria found.</div>';
-        return;
-    }
-    for(const [criterion, lines] of criteriaMap.entries()){
-        const card = document.createElement("div");
-        card.className = "criterion-card";
-        card.dataset.search = criterion.toLowerCase();
+  resultsContainer.innerHTML = "";
+  if(criteriaMap.size===0){ resultsContainer.innerHTML='<div class="empty-state">No evaluation of criteria found.</div>'; return; }
+  for(const [criterion, lines] of criteriaMap.entries()){
+    const card = document.createElement("div");
+    card.className="criterion-card";
+    card.dataset.search=criterion.toLowerCase();
 
-        const lineItems = Array.from(lines).map(line => {
-            const highlighted = highlightCriteriaMentions(escapeHtml(line));
-            return `<li>${highlighted} <button class="copy-btn" onclick="navigator.clipboard.writeText('${escapeHtml(line).replace(/'/g,"\\'")}')">Copy</button></li>`;
-        }).join("");
+    const lineItems = Array.from(lines).map(line=>{
+      const highlighted = highlightSpecificCriteria(escapeHtml(line), criterion.replace('C',''));
+      return `<li>${highlighted} <button class="copy-btn" onclick="navigator.clipboard.writeText('${escapeHtml(line).replace(/'/g,"\\'")}')">Copy</button></li>`;
+    }).join('');
 
-        card.innerHTML = `<div class="criterion-label">${criterion}</div><ul class="context-list">${lineItems}</ul>`;
-        resultsContainer.appendChild(card);
-    }
+    card.innerHTML=`<div class="criterion-label">${criterion}</div><ul class="context-list">${lineItems}</ul>`;
+    resultsContainer.appendChild(card);
+  }
 }
 
 function renderKeywords(keywordMap){
-    keywordResults.innerHTML = "";
-    if(keywordMap.size === 0){
-        keywordResults.innerHTML = '<div class="empty-state">No keywords detected.</div>';
-        return;
-    }
-    for(const [keyword, rawLines] of keywordMap.entries()){
-        const card = document.createElement("div");
-        card.className = "criterion-card";
-        card.dataset.search = keyword.toLowerCase();
+  keywordResults.innerHTML="";
+  if(keywordMap.size===0){ keywordResults.innerHTML='<div class="empty-state">No keywords detected.</div>'; return; }
 
-        const lines = Array.from(rawLines).map(line => {
-            let highlighted = line;
-            highlighted = highlightKeyword(highlighted, keyword);
-            highlighted = highlightCriteriaMentions(highlighted); // also highlight criteria mentions in keyword panel
-            return `<li>${highlighted} <button class="copy-btn" onclick="navigator.clipboard.writeText('${escapeHtml(line).replace(/'/g,"\\'")}')">Copy</button></li>`;
-        }).join("");
+  for(const [keyword, rawLines] of keywordMap.entries()){
+    const card=document.createElement("div");
+    card.className="criterion-card";
+    card.dataset.search=keyword.toLowerCase();
 
-        card.innerHTML = `<div class="criterion-label">${keyword}</div><ul class="context-list">${lines}</ul>`;
-        keywordResults.appendChild(card);
-    }
+    const lines=Array.from(rawLines).map(line=>{
+      let highlighted=line;
+      highlighted=highlightKeyword(highlighted, keyword);
+      return `<li>${highlighted} <button class="copy-btn" onclick="navigator.clipboard.writeText('${escapeHtml(line).replace(/'/g,"\\'")}')">Copy</button></li>`;
+    }).join('');
+
+    card.innerHTML=`<div class="criterion-label">${keyword}</div><ul class="context-list">${lines}</ul>`;
+    keywordResults.appendChild(card);
+  }
+}
+
+function highlightKeyword(line, keyword){
+  const pattern=new RegExp(`(${keyword})`,'ig');
+  return line.replace(pattern,'<span class="kw">$1</span>');
 }
 
 function applyFilter(){
-    const q = filterInput.value.toLowerCase().trim();
-    const allCards = document.querySelectorAll("[data-search]");
-    allCards.forEach(card => {
-        const key = card.dataset.search;
-        const full = card.textContent.toLowerCase();
-        card.style.display = (!q || key.includes(q) || full.includes(q)) ? "block" : "none";
-    });
+  const q=filterInput.value.toLowerCase().trim();
+  const allCards=document.querySelectorAll("[data-search]");
+  allCards.forEach(card=>{
+    const key=card.dataset.search;
+    const full=card.textContent.toLowerCase();
+    card.style.display=(!q||key.includes(q)||full.includes(q))?'block':'none';
+  });
 }
 
 function analyze(){
-    const raw = inputEl.value.trim();
-    if(!raw) return;
-    const critMap = findCriteriaContexts(raw);
-    renderCriteria(critMap);
-    const keywordMap = findKeywordHits(raw);
-    renderKeywords(keywordMap);
-    applyFilter();
+  const raw=inputEl.value.trim();
+  if(!raw) return;
+  const critMap=findCriteriaContexts(raw);
+  renderCriteria(critMap);
+  const keywordMap=findKeywordHits(raw);
+  renderKeywords(keywordMap);
+  applyFilter();
 }
 
 function loadExample(){
-    inputEl.value = `This was a good image for the LLM to analyze and a good prompt however there were several inaccurate criteria, which cited specific numbers for phase transitions but did not specify what alloy was being investigated.
+  inputEl.value=`This was a good image for the LLM to analyze and a good prompt however there were several inaccurate criteria, which cited specific numbers for phase transitions but did not specify what alloy was being investigated.
 C1 – Only true for the 0.4 % Carbon, incorrect/incomplete
-C4 – Does not require image The response states the final room temperature constituents (Proeutectoid ferrite and pearlite)
+C4 – Does not require image
+The response states the final room temperature constituents (Proeutectoid ferrite and pearlite)
 C5 – Only true for the 0.4%, incorrect/incomplete
 C7 – self contained/incomplete – does not specify which alloy
 C10/C13 repetitive/overlapping – same idea as C3
 C12 – this temperature is not true for either of the alloys being discussed and C% is not mentioned.
 C15 – Only true for the 5% Carbon, incorrect/incomplete
-C17 – incorrect/incomplete. this is not the case for carbon % below 2.`;
-    analyze();
+C17 – incorrect/incomplete. this is not the case for carbon % below 2.
+`;
+  analyze();
 }
 
-modeToggle.addEventListener("click", () => {
-    document.body.classList.toggle("light");
-    modeToggle.textContent = document.body.classList.contains("light") ? "Dark Mode" : "Light Mode";
-});
-analyzeBtn.addEventListener("click", analyze);
-filterInput.addEventListener("input", applyFilter);
-loadExampleBtn.addEventListener("click", loadExample);
+modeToggle.addEventListener("click",()=>{document.body.classList.toggle("light"); modeToggle.textContent=document.body.classList.contains("light")?"Dark Mode":"Light Mode";});
+analyzeBtn.addEventListener("click",analyze);
+filterInput.addEventListener("input",applyFilter);
+loadExampleBtn.addEventListener("click",loadExample);
 </script>
 </body>
 </html>
